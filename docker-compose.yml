@@ -1,0 +1,35 @@
+version: '3.7'
+services: 
+  netcat:
+    container_name: netcat
+    image: gabictrlz/netcat
+    networks: 
+      - default
+
+  mongodb:
+    image: 'docker.io/bitnami/mongodb:4.2-debian-10'
+    networks: 
+      - default
+    ports:
+      - 27018:27017
+    volumes:
+      - 'mongodb_data:/bitnami/mongodb'
+
+  nginx:
+    image: 'docker.io/bitnami/nginx:1.19-debian-10'
+    networks: 
+      - default
+    ports:
+      - 3000:8080
+    volumes:
+      - /Users/asafshpigler/Desktop/stuff/docker/my_server_block.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks: 
+  default:
+    external: 
+      name: relation_default
+    
