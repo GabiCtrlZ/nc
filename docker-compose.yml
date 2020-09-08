@@ -1,26 +1,57 @@
 version: '3.7'
 services: 
-  netcat:
-    container_name: netcat
-    image: gabictrlz/netcat
+  express:
+    container_name: express
+    depends_on:
+      - mongodb
+    image: gabictrlz/express
     networks: 
       - default
 
   mongodb:
+    container_name: mongodb
     image: 'docker.io/bitnami/mongodb:4.2-debian-10'
-    networks: 
-      - default
-    ports:
-      - 27018:27017
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+
     volumes:
-      - 'mongodb_data:/bitnami/mongodb'
+      - '/Users/asafshpigler/Desktop/stuff/docker/mongodb-persistence:/bitnami/mongodb'
+
+  mongodb-secondary:
+    image: 'docker.io/bitnami/mongodb:4.2-debian-10'
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+
+  mongodb-secondary-second:
+    image: 'docker.io/bitnami/mongodb:4.2-debian-10'
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary-second
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
 
   nginx:
     image: 'docker.io/bitnami/nginx:1.19-debian-10'
+    depends_on:
+      - express
     networks: 
       - default
     ports:
-      - 3000:8080
+      - 80:8080
     volumes:
       - /Users/asafshpigler/Desktop/stuff/docker/my_server_block.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
 
